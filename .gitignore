@@ -1,0 +1,8 @@
+
+*.zip
+*.meta
+*.png
+*.cginc
+/MANN/Unity/Library
+/MANN/Unity/ProjectSettings
+/MANN/Unity/Temp

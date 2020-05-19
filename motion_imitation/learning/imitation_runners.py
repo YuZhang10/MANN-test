@@ -16,6 +16,8 @@
 import gym
 import numpy as np
 
+import random
+
 from stable_baselines.common.vec_env import VecEnv
 
 def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False, callback=None):
@@ -71,9 +73,19 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False, 
     episode_start = True  # marks if we're on first timestep of an episode
     done = False
 
+    # add random control signal
+    pre_control='W'
+    total_control_commands=['W','A','S','D','Q','E']
+    commands_sample_weights=[59, 10, 1,  10, 10, 10]
     callback.on_rollout_start()
 
     while True:
+        if random.random()<0.95:# 95% keep same as the last control
+            cur_control=pre_control
+        else:# sample commands following the distribution as commands_sample_weights
+            cur_control=random.choices(total_control_commands,commands_sample_weights)
+            pre_control=cur_control
+            
         action, vpred, states, info = policy.step(observation.reshape(-1, *observation.shape), states, done)
         # Slight weirdness here because we need value function at time T
         # before returning segment [0, T-1] so we get the correct
