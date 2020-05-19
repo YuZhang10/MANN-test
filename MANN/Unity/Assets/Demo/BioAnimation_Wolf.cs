@@ -62,6 +62,10 @@ namespace SIGGRAPH_2018 {
 		//Performance
 		private float NetworkPredictionTime;
 
+		// zhangyu test position
+		private string[] controlPositionData;
+		private int curLine = 0;
+
 		void Reset() {
 			Controller = new Controller();
 		}
@@ -94,6 +98,8 @@ namespace SIGGRAPH_2018 {
 				return;
 			}
 			NN.LoadParameters();
+
+			controlPositionData = System.IO.File.ReadAllLines(@"D:/RobotsProject/raisim_workspace/motion_imitation/MANN/Unity/Assets/Demo/controlpositiondata.txt");
 		}
 
 		void Start() {
@@ -146,28 +152,39 @@ namespace SIGGRAPH_2018 {
 		}
 
 		void Update() {
-			if(NN.Parameters == null) {
-				return;
-			}
+			// if(NN.Parameters == null) {
+			// 	return;
+			// }
 
-			if(TrajectoryControl) {
-				PredictTrajectory();
-			}
+			// if(TrajectoryControl) {
+			// 	PredictTrajectory();
+			// }
 
-			if(NN.Parameters != null) {
-				Animate();
-			}
+			// if(NN.Parameters != null) {
+			// 	Animate();
+			// }
 
-			if(MotionEditing != null) {
-				MotionEditing.Process();
-				for(int i=0; i<Actor.Bones.Length; i++) {
-					Vector3 position = Actor.Bones[i].Transform.position;
-					position.y = Positions[i].y;
-					Positions[i] = Vector3.Lerp(Positions[i], position, MotionEditing.GetStability());
-					Console.WriteLine(Positions[i].ToString("F4"));
-				}
-				Console.WriteLine("\t\t");
+			// if(MotionEditing != null) {
+			// 	MotionEditing.Process();
+			// 	for(int i=0; i<Actor.Bones.Length; i++) {
+			// 		Vector3 position = Actor.Bones[i].Transform.position;
+			// 		position.y = Positions[i].y;
+			// 		Positions[i] = Vector3.Lerp(Positions[i], position, MotionEditing.GetStability());
+			// 		Console.WriteLine(Positions[i].ToString("F4"));
+			// 	}
+			// 	Console.WriteLine("\t\t");
+			// }
+			
+			for(int i=0; i<Actor.Bones.Length; i++) {
+				curLine+=1;
+				string line=controlPositionData[curLine];
+				string[] xyz = line.Substring(1,line.Length-2).Split(',');
+				Debug.Log(xyz[0]);
+				Positions[i] = new Vector3(float.Parse(xyz[0]), float.Parse(xyz[1]), float.Parse(xyz[2]));
+				Actor.Bones[i].Transform.position = Positions[i];
+				Debug.Log(Positions[i]);
 			}
+			curLine+=2;
 		}
 
 		private void PredictTrajectory() {
