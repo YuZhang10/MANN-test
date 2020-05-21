@@ -2,11 +2,18 @@
 using System;
 using System.Collections.Generic;
 using DeepLearning;
+using System.Runtime.InteropServices;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 namespace SIGGRAPH_2018 {
+	public class controlSkeletonPair
+	{
+	    public int frameCnt { get; set; }
+	    public Vector3[] skeleton { get; set; }
+	}
+
 	[RequireComponent(typeof(Actor))]
 	public class BioAnimation_Wolf : MonoBehaviour {
 
@@ -62,9 +69,23 @@ namespace SIGGRAPH_2018 {
 		//Performance
 		private float NetworkPredictionTime;
 
-		// zhangyu test position
-		private string[] controlPositionData;
-		private int curLine = 0;
+
+		//Random key-pressing
+		private static string[] movesRawStr = {"W","W","W","W","W","W","WQ","WQ","WE","WE",
+									"Q","Q","E","E","A","D"};
+		private static System.Random randomGenerator = new System.Random();
+		private string lastMove = "W";
+		private string curMove  = "W";
+
+		private static int singleMoveMaxLenth = 100;//100frames ~ 2 seconds
+		private int singleMoveLenth = singleMoveMaxLenth;
+
+		//Data
+		// private List<controlSkeletonPair> controlSkeletonPairs = new List<controlSkeletonPair>();
+		private System.IO.StreamWriter file;
+
+		// Current frame
+		private int frameCnt = 0;
 
 		void Reset() {
 			Controller = new Controller();
@@ -99,7 +120,7 @@ namespace SIGGRAPH_2018 {
 			}
 			NN.LoadParameters();
 
-			controlPositionData = System.IO.File.ReadAllLines(@"D:/RobotsProject/raisim_workspace/motion_imitation/MANN/Unity/Assets/Demo/controlpositiondata.txt");
+			file = new System.IO.StreamWriter(@"C:\Users\hp\Desktop\skeleton.txt", true);
 		}
 
 		void Start() {
@@ -151,40 +172,139 @@ namespace SIGGRAPH_2018 {
 			}
 		}
 
-		void Update() {
-			// if(NN.Parameters == null) {
-			// 	return;
-			// }
+		[DllImport("user32.dll", EntryPoint = "keybd_event")]
+	    static extern void keybd_event(
+            byte bVk,            //虚拟键值 对应按键的ascll码十进制值  
+            byte bScan,          //0
+            int dwFlags,         //0 为按下，1按住，2为释放 
+            int dwExtraInfo      //0
+        );
 
-			// if(TrajectoryControl) {
-			// 	PredictTrajectory();
-			// }
 
-			// if(NN.Parameters != null) {
-			// 	Animate();
-			// }
-
-			// if(MotionEditing != null) {
-			// 	MotionEditing.Process();
-			// 	for(int i=0; i<Actor.Bones.Length; i++) {
-			// 		Vector3 position = Actor.Bones[i].Transform.position;
-			// 		position.y = Positions[i].y;
-			// 		Positions[i] = Vector3.Lerp(Positions[i], position, MotionEditing.GetStability());
-			// 		Console.WriteLine(Positions[i].ToString("F4"));
-			// 	}
-			// 	Console.WriteLine("\t\t");
-			// }
-			
-			for(int i=0; i<Actor.Bones.Length; i++) {
-				curLine+=1;
-				string line=controlPositionData[curLine];
-				string[] xyz = line.Substring(1,line.Length-2).Split(',');
-				Debug.Log(xyz[0]);
-				Positions[i] = new Vector3(float.Parse(xyz[0]), float.Parse(xyz[1]), float.Parse(xyz[2]));
-				Actor.Bones[i].Transform.position = Positions[i];
-				Debug.Log(Positions[i]);
+	    void RandomKeyPressing(){
+	    	// sampling key-pressing
+			if (singleMoveLenth>0) {
+				curMove = lastMove;
+				singleMoveLenth -= 1;
 			}
-			curLine+=2;
+			else{
+				curMove = movesRawStr[randomGenerator.Next(movesRawStr.Length)];
+				lastMove = curMove;
+				singleMoveLenth = singleMoveMaxLenth*(100-randomGenerator.Next(10))/100;
+				//acctual control time is 0.9~1*Maxlength	
+			}
+			Debug.Log("Pressing key: "+curMove);
+
+			//Simulate the key-pressing using win32 API
+			//key to ASCCII
+			/* https://blog.csdn.net/wenzhilu/article/details/51605540 */
+
+			if(curMove=="W"){
+				keybd_event(87, 0, 1, 0);
+			}
+			else if(curMove=="E"){
+				keybd_event(69, 0, 1, 0);
+			}
+			else if(curMove=="Q"){
+				keybd_event(81, 0, 1, 0);
+			}
+			else if(curMove=="A"){
+				keybd_event(65, 0, 1, 0);
+			}
+			else if(curMove=="D"){
+				keybd_event(68, 0, 1, 0);
+			}
+			else if(curMove=="S"){
+				keybd_event(83, 0, 1, 0);
+			}
+			else if(curMove=="WQ"){
+				keybd_event(87, 0, 1, 0);
+				keybd_event(81, 0, 1, 0);
+			}
+			else if(curMove=="WE"){
+				keybd_event(87, 0, 1, 0);
+				keybd_event(69, 0, 1, 0);
+			}
+			else{
+				Debug.Log("Unsupported Key"+curMove);
+			}
+	    }
+
+	    void ReleaseKey(){
+			if(curMove=="W"){
+				keybd_event(87, 0, 2, 0);
+			}
+			else if(curMove=="E"){
+				keybd_event(69, 0, 2, 0);
+			}
+			else if(curMove=="Q"){
+				keybd_event(81, 0, 2, 0);
+			}
+			else if(curMove=="A"){
+				keybd_event(65, 0, 2, 0);
+			}
+			else if(curMove=="D"){
+				keybd_event(68, 0, 2, 0);
+			}
+			else if(curMove=="S"){
+				keybd_event(83, 0, 2, 0);
+			}
+			else if(curMove=="WQ"){
+				keybd_event(87, 0, 2, 0);
+				keybd_event(81, 0, 2, 0);
+			}
+			else if(curMove=="WE"){
+				keybd_event(87, 0, 2, 0);
+				keybd_event(69, 0, 2, 0);
+			}
+			else{
+				Debug.Log("Unsupported Key"+curMove);
+			}
+	    }
+
+	    void SaveFile(){
+	  //   	controlSkeletonPairs.Add(new controlSkeletonPair()
+			// {
+			//     frameCnt = frameCnt,
+			//     skeleton = Positions
+			// });
+			// string json = JsonConvert.SerializeObject(controlSkeletonPairs.ToArray());
+	    	file.WriteLine(curMove);
+	    	for(int i=0;i<Positions.Length;i++){
+		    	file.WriteLine(Positions[i].ToString("F4"));
+	    	}
+	    	file.WriteLine("\t\t");
+	    }
+
+		void Update() {
+			RandomKeyPressing();
+
+			if(NN.Parameters == null) {
+				return;
+			}
+
+			if(TrajectoryControl) {
+				PredictTrajectory();
+			}
+
+			if(NN.Parameters != null) {
+				Animate();
+			}
+
+			if(MotionEditing != null) {
+				MotionEditing.Process();
+				for(int i=0; i<Actor.Bones.Length; i++) {
+					Vector3 position = Actor.Bones[i].Transform.position;
+					position.y = Positions[i].y;
+					Positions[i] = Vector3.Lerp(Positions[i], position, MotionEditing.GetStability());
+					// Console.WriteLine(Positions[i].ToString("F4"));
+				}
+				// Console.WriteLine("\t\t");
+			}
+
+			SaveFile();
+
+			ReleaseKey();
 		}
 
 		private void PredictTrajectory() {

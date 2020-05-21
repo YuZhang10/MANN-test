@@ -43,34 +43,34 @@ public class InputHandler : MonoBehaviour {
 		HashSet<KeyCode> state = new HashSet<KeyCode>();
 
 		// raw input by keyboard
-		// foreach(KeyCode k in Enum.GetValues(typeof(KeyCode))) {
-		// 	if(Input.GetKey(k)) {
-		// 		// Console.WriteLine("pressing key:{0}\t",k);
-		// 		state.Add(k);
-		// 	}
-		// }
-		// Keys.Add(state);
-
-		// input by random sampling
-		string curMove;
-		if (singleMoveLenth>0) {
-			// 99% follow lastMove
-			curMove = lastMove;
-			singleMoveLenth -= 1;
-		}
-		else{
-			curMove = moves[randomChooseMoves.Next(moves.Length)];
-			lastMove = curMove;
-			singleMoveLenth = singleMoveMaxLenth;	
-		}
-		Console.WriteLine("pressing key:{0}\t",curMove);
-
-		KeyCode k;
-		foreach(char kstr in curMove){
-			k = (KeyCode) System.Enum.Parse(typeof(KeyCode), kstr.ToString());
-			state.Add(k);
+		foreach(KeyCode k in Enum.GetValues(typeof(KeyCode))) {
+			if(Input.GetKey(k)) {
+				// Console.WriteLine("pressing key:{0}\t",k);
+				state.Add(k);
 			}
+		}
 		Keys.Add(state);
+
+		// // input by random sampling
+		// string curMove;
+		// if (singleMoveLenth>0) {
+		// 	// 99% follow lastMove
+		// 	curMove = lastMove;
+		// 	singleMoveLenth -= 1;
+		// }
+		// else{
+		// 	curMove = moves[randomChooseMoves.Next(moves.Length)];
+		// 	lastMove = curMove;
+		// 	singleMoveLenth = singleMoveMaxLenth;	
+		// }
+		// Console.WriteLine("pressing key:{0}\t",curMove);
+
+		// KeyCode k;
+		// foreach(char kstr in curMove){
+		// 	k = (KeyCode) System.Enum.Parse(typeof(KeyCode), kstr.ToString());
+		// 	state.Add(k);
+		// 	}
+		// Keys.Add(state);
 	}
 
 	public static bool GetKey(KeyCode k) {
