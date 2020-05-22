@@ -36,6 +36,8 @@ namespace SIGGRAPH_2018 {
 		private bool FootfallPattern = false;
 
 		void Start() {
+			Flat.SetActive(true);
+			Terrain.SetActive(false);
 			ApplyVisualisation();
 			ApplyGUI();
 		}

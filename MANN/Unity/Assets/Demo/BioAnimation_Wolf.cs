@@ -42,6 +42,10 @@ namespace SIGGRAPH_2018 {
 		private Vector3[] Forwards = new Vector3[0];
 		private Vector3[] Ups = new Vector3[0];
 		private Vector3[] Velocities = new Vector3[0];
+		private Vector3[] InitPositions = new Vector3[0];
+		private Vector3[] InitForwards = new Vector3[0];
+		private Vector3[] InitUps = new Vector3[0];
+		private Vector3[] InitVelocities = new Vector3[0];
 
 		//NN Parameters
 		private const int TrajectoryDimIn = 13;
@@ -69,7 +73,6 @@ namespace SIGGRAPH_2018 {
 		//Performance
 		private float NetworkPredictionTime;
 
-
 		//Random key-pressing
 		private static string[] movesRawStr = {"W","W","W","W","W","W","WQ","WQ","WE","WE",
 									"Q","Q","E","E","A","D"};
@@ -80,12 +83,13 @@ namespace SIGGRAPH_2018 {
 		private static int singleMoveMaxLenth = 100;//100frames ~ 2 seconds
 		private int singleMoveLenth = singleMoveMaxLenth;
 
-		//Data
+		//Data saving
 		// private List<controlSkeletonPair> controlSkeletonPairs = new List<controlSkeletonPair>();
 		private System.IO.StreamWriter file;
 
-		// Current frame
+		// episode control
 		private int frameCnt = 0;
+		private int frameNumPerSample = 30;//~10s
 
 		void Reset() {
 			Controller = new Controller();
@@ -102,6 +106,10 @@ namespace SIGGRAPH_2018 {
 			Forwards = new Vector3[Actor.Bones.Length];
 			Ups = new Vector3[Actor.Bones.Length];
 			Velocities = new Vector3[Actor.Bones.Length];
+			InitPositions = new Vector3[Actor.Bones.Length];
+			InitForwards = new Vector3[Actor.Bones.Length];
+			InitUps = new Vector3[Actor.Bones.Length];
+			InitVelocities = new Vector3[Actor.Bones.Length];
 			Trajectory = new Trajectory(Points, Controller.GetNames(), transform.position, TargetDirection);
 			if(Controller.Styles.Length > 0) {
 				for(int i=0; i<Trajectory.Points.Length; i++) {
@@ -113,14 +121,21 @@ namespace SIGGRAPH_2018 {
 				Forwards[i] = Actor.Bones[i].Transform.forward;
 				Ups[i] = Actor.Bones[i].Transform.up;
 				Velocities[i] = Vector3.zero;
+				InitPositions[i]= Actor.Bones[i].Transform.position;
+				InitForwards[i]= Actor.Bones[i].Transform.forward;
+				InitUps[i]= Actor.Bones[i].Transform.up;
+				InitVelocities[i]= Vector3.zero;
 			}
+			
+
 			if(NN.Parameters == null) {
 				Debug.Log("No parameters saved.");
 				return;
 			}
 			NN.LoadParameters();
 
-			file = new System.IO.StreamWriter(@"C:\Users\hp\Desktop\skeleton.txt", true);
+			string time = DateTime.Now.ToString(@"MMdd HH-mm-ss");
+			file = new System.IO.StreamWriter(@".\skeleton_"+time+"_.txt", true);
 		}
 
 		void Start() {
@@ -164,12 +179,19 @@ namespace SIGGRAPH_2018 {
 					Trajectory.Points[i].Styles[0] = 1f;
 				}
 			}
+			// for(int i=0; i<Actor.Bones.Length; i++) {
+			// 	Positions[i] = Actor.Bones[i].Transform.position;
+			// 	Forwards[i] = Actor.Bones[i].Transform.forward;
+			// 	Ups[i] = Actor.Bones[i].Transform.up;
+			// 	Velocities[i] = Vector3.zero;
+			// }
 			for(int i=0; i<Actor.Bones.Length; i++) {
-				Positions[i] = Actor.Bones[i].Transform.position;
-				Forwards[i] = Actor.Bones[i].Transform.forward;
-				Ups[i] = Actor.Bones[i].Transform.up;
-				Velocities[i] = Vector3.zero;
+				Positions[i]=InitPositions[i];
+				Forwards[i]=InitForwards[i];
+				Ups[i]=InitUps[i];
+				Velocities[i]=InitVelocities[i];
 			}
+			
 		}
 
 		[DllImport("user32.dll", EntryPoint = "keybd_event")]
@@ -263,12 +285,6 @@ namespace SIGGRAPH_2018 {
 	    }
 
 	    void SaveFile(){
-	  //   	controlSkeletonPairs.Add(new controlSkeletonPair()
-			// {
-			//     frameCnt = frameCnt,
-			//     skeleton = Positions
-			// });
-			// string json = JsonConvert.SerializeObject(controlSkeletonPairs.ToArray());
 	    	file.WriteLine(curMove);
 	    	for(int i=0;i<Positions.Length;i++){
 		    	file.WriteLine(Positions[i].ToString("F4"));
@@ -277,6 +293,14 @@ namespace SIGGRAPH_2018 {
 	    }
 
 		void Update() {
+			if(frameCnt<frameNumPerSample){
+				frameCnt+=1;
+			}
+			else{
+				frameCnt=0;
+				Reinitialise();
+			}
+
 			RandomKeyPressing();
 
 			if(NN.Parameters == null) {
@@ -302,7 +326,7 @@ namespace SIGGRAPH_2018 {
 				// Console.WriteLine("\t\t");
 			}
 
-			SaveFile();
+			// SaveFile();
 
 			ReleaseKey();
 		}
