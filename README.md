@@ -1,57 +1,71 @@
-# Motion Imitation
+# MANN
 
-This repository contains code accompanying the paper:
+This repository is made to export skeleton and keyboard input, following
 
-"Learning Agile Robotic Locomotion Skills by Imitating Animals",
+"Mode-Adaptive Neural Networks for Quadruped Motion Control",
 
-by Xue Bin Peng et al. It provides a Gym environment for training a simulated quadruped robot to imitate various reference motions, and example training code for learning the policies.
+by He Zhang, Sebastian Starke et al. 
 
-Project page: https://xbpeng.github.io/projects/Robotic_Imitation/index.html
-
-## Getting Started
-
-Install dependencies:
-
-- Install MPI: `sudo apt install libopenmpi-dev`
-- Install requirements: `pip3 install -r requirements.txt`
-
-and it should be good to go.
-
-## Training Models
-
-To train a policy, run the following command:
-
-``python3 motion_imitation/run.py --mode train --motion_file motion_imitation/data/motions/dog_pace.txt --int_save_freq 10000000 --visualize``
-
-- `--mode` can be either `train` or `test`.
-- `--motion_file` specifies the reference motion that the robot is to imitate. `motion_imitation/data/motions/` contains different reference motion clips.
-- `--int_save_freq` specifies the frequency for saving intermediate policies every n policy steps.
-- `--visualize` enables visualization, and rendering can be disabled by removing the flag.
-- the trained model and logs will be written to `output/`.
-
-For parallel training with MPI run:
-
-``mpiexec -n 8 python3 motion_imitation/run.py --mode train --motion_file motion_imitation/data/motions/dog_pace.txt --int_save_freq 10000000``
-
-- `-n` is the number of parallel.
-
-## Testing Models
-
-To test a trained model, run the following command
-
-``python3 motion_imitation/run.py --mode test --motion_file motion_imitation/data/motions/dog_pace.txt --model_file motion_imitation/data/policies/dog_pace.zip --visualize``
-
-- `--model_file` specifies the `.zip` file that contains the trained model. Pretrained models are available in `motion_imitation/data/policies/`.
+https://github.com/sebastianstarke/AI4Animation
 
 
-## Data
 
-- `motion_imitation/data/motions/` contains different reference motion clips.
-- `motion_imitation/data/policies/` contains pretrained models for the different reference motions.
+## Export Skeleton
 
-For more information on the reference motion data format, see the [DeepMimic documentation](https://github.com/xbpeng/DeepMimic)
+This project is based on Unity(C#), and is only tested on Windows
 
----
+To start exporting, just run **\MANN\Unity\UnitySkeletonGeneratorEXE\UnitySkeletonGeneratorEXE.exe**,
 
-*Disclaimer: This is not an official Google product.*
+and it will start a unity program which continuously save the skeleton and respective random sampled keyboard control.
+
+![image-20200526224904619](README.assets/image-20200526224904619.png)
+
+
+
+## To Customize
+
+All change is made in '\MANN\Unity\Assets\Demo\BioAnimation_Wolf.cs'
+
+features includes:
+
+- random sample keyboard control by win32 API
+- each keyboard control last for 1~2s for control stability
+- save txt file name by current time
+- a .bat file to repeatedly collect data
+
+
+
+## Data Form
+
+keyboard input
+
+(x,y,z) for 27 joints
+
+
+
+e.g.
+
+*W*
+*(0.0051, 1.0147, 0.0061)*
+*(0.0051, 1.0147, 0.0061)*
+*...*
+*(0.0050, 0.9930, -0.0573)*
+*(0.0025, 0.9493, -0.1626)*
+*(-0.0029, 0.9322, -0.2668)*
+
+*E*
+*(0.0048, 0.7713, 0.0097)*
+*(0.0048, 0.7713, 0.0097)*
+*...*
+*(0.0070, 0.7441, -0.0517)*
+*(0.0025, 0.6999, -0.1559)*
+*(-0.0061, 0.6801, -0.2578)*
+
+*Q*
+*(0.0036, 0.6379, 0.0127)*
+*(0.0036, 0.6379, 0.0127)*
+*...*
+*(0.0068, 0.6094, -0.0480)*
+*(0.0040, 0.5576, -0.1500)*
+*(-0.0026, 0.5276, -0.2509)*
 
