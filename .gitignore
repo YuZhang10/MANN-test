@@ -1,7 +1,6 @@
 
 *.zip
 *.meta
-*.png
 *.cginc
 /MANN/Unity/Library
 /MANN/Unity/ProjectSettings
