@@ -42,10 +42,6 @@ namespace SIGGRAPH_2018 {
 		private Vector3[] Forwards = new Vector3[0];
 		private Vector3[] Ups = new Vector3[0];
 		private Vector3[] Velocities = new Vector3[0];
-		private Vector3[] InitPositions = new Vector3[0];
-		private Vector3[] InitForwards = new Vector3[0];
-		private Vector3[] InitUps = new Vector3[0];
-		private Vector3[] InitVelocities = new Vector3[0];
 
 		//NN Parameters
 		private const int TrajectoryDimIn = 13;
@@ -106,10 +102,6 @@ namespace SIGGRAPH_2018 {
 			Forwards = new Vector3[Actor.Bones.Length];
 			Ups = new Vector3[Actor.Bones.Length];
 			Velocities = new Vector3[Actor.Bones.Length];
-			InitPositions = new Vector3[Actor.Bones.Length];
-			InitForwards = new Vector3[Actor.Bones.Length];
-			InitUps = new Vector3[Actor.Bones.Length];
-			InitVelocities = new Vector3[Actor.Bones.Length];
 			Trajectory = new Trajectory(Points, Controller.GetNames(), transform.position, TargetDirection);
 			if(Controller.Styles.Length > 0) {
 				for(int i=0; i<Trajectory.Points.Length; i++) {
@@ -121,10 +113,6 @@ namespace SIGGRAPH_2018 {
 				Forwards[i] = Actor.Bones[i].Transform.forward;
 				Ups[i] = Actor.Bones[i].Transform.up;
 				Velocities[i] = Vector3.zero;
-				InitPositions[i]= Actor.Bones[i].Transform.position;
-				InitForwards[i]= Actor.Bones[i].Transform.forward;
-				InitUps[i]= Actor.Bones[i].Transform.up;
-				InitVelocities[i]= Vector3.zero;
 			}
 			
 
@@ -179,19 +167,12 @@ namespace SIGGRAPH_2018 {
 					Trajectory.Points[i].Styles[0] = 1f;
 				}
 			}
-			// for(int i=0; i<Actor.Bones.Length; i++) {
-			// 	Positions[i] = Actor.Bones[i].Transform.position;
-			// 	Forwards[i] = Actor.Bones[i].Transform.forward;
-			// 	Ups[i] = Actor.Bones[i].Transform.up;
-			// 	Velocities[i] = Vector3.zero;
-			// }
 			for(int i=0; i<Actor.Bones.Length; i++) {
-				Positions[i]=InitPositions[i];
-				Forwards[i]=InitForwards[i];
-				Ups[i]=InitUps[i];
-				Velocities[i]=InitVelocities[i];
+				Positions[i] = Actor.Bones[i].Transform.position;
+				Forwards[i] = Actor.Bones[i].Transform.forward;
+				Ups[i] = Actor.Bones[i].Transform.up;
+				Velocities[i] = Vector3.zero;
 			}
-			
 		}
 
 		[DllImport("user32.dll", EntryPoint = "keybd_event")]
@@ -212,10 +193,10 @@ namespace SIGGRAPH_2018 {
 			else{
 				curMove = movesRawStr[randomGenerator.Next(movesRawStr.Length)];
 				lastMove = curMove;
-				singleMoveLenth = singleMoveMaxLenth*(100-randomGenerator.Next(10))/100;
-				//acctual control time is 0.9~1*Maxlength	
+				singleMoveLenth = singleMoveMaxLenth*(100-randomGenerator.Next(50))/100;
+				//acctual control time varys in 0.5~1*Maxlength
 			}
-			Debug.Log("Pressing key: "+curMove);
+			// Debug.Log("Pressing key: "+curMove);
 
 			//Simulate the key-pressing using win32 API
 			//key to ASCCII
@@ -293,14 +274,6 @@ namespace SIGGRAPH_2018 {
 	    }
 
 		void Update() {
-			if(frameCnt<frameNumPerSample){
-				frameCnt+=1;
-			}
-			else{
-				frameCnt=0;
-				Reinitialise();
-			}
-
 			RandomKeyPressing();
 
 			if(NN.Parameters == null) {
@@ -326,7 +299,7 @@ namespace SIGGRAPH_2018 {
 				// Console.WriteLine("\t\t");
 			}
 
-			// SaveFile();
+			SaveFile();
 
 			ReleaseKey();
 		}
