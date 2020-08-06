@@ -10,13 +10,13 @@ https://github.com/sebastianstarke/AI4Animation
 
 
 
-## Export Skeleton
+## How to Use
 
-This project is based on Unity(C#), and is only tested on Windows
-
-To start exporting, just run **\MANN\Unity\UnitySkeletonGeneratorEXE\UnitySkeletonGeneratorEXE.exe**,
+run ```\MANN\Unity\UnitySkeletonGeneratorEXE\UnitySkeletonGeneratorEXE.exe**```
 
 and it will start a unity program which continuously save the skeleton and respective random sampled keyboard control.
+
+This project is based on Unity(C#), and is only tested on Windows
 
 ![image-20200526224904619](README.assets/image-20200526224904619.png)
 
